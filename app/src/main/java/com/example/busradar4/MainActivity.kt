@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         textView.text = line
 
-        // TYLKO strzałka dostaje rotację. Layout (LinearLayout) pozostaje poziomy.
+        // rotacja strzałki w znaczniku autobusu
         if (bearing != 0f) {
             arrowView.visibility = View.VISIBLE
             arrowView.rotation = bearing - 90f
@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             arrowView.visibility = View.GONE
         }
 
-        // Standardowe rysowanie widoku do bitmapy
+        // rysowanie mapy
         markerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         markerView.layout(0, 0, markerView.measuredWidth, markerView.measuredHeight)
 
@@ -153,27 +153,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val tooManyResultsView = findViewById<TextView>(R.id.tooManyResultsText)
         val bounds = mMap.projection.visibleRegion.latLngBounds
 
-        // Filtrujemy listę: musi być w widoku ORAZ musi być świeży
+        // selekcja autobusów
         val busesInView = lastBusList.filter { bus ->
             val pos = LatLng(bus.Lat.toDouble(), bus.Lon.toDouble())
             val isVisible = bounds.contains(pos)
-            val isFresh = isTimeFresh(bus.Time) // SPRAWDZAMY CZAS
+            val isFresh = isTimeFresh(bus.Time)
 
             isVisible && isFresh
         }
 
         if (busesInView.size > 150) {
-            // Czyścimy markery z mapy, żeby nie zaśmiecać widoku przy oddaleniu
+            // czyszczenie markerów po oddaleniu
             visibleMarkers.forEach { it.value.remove() }
             visibleMarkers.clear()
 
             tooManyResultsView.visibility = View.VISIBLE
-            return // ZAKOŃCZ FUNKCJĘ TUTAJ - nie rysuj nic więcej
+            return
         } else {
             tooManyResultsView.visibility = View.GONE
         }
 
-        // 3. Usuwanie "duchów" (tylko jeśli jesteśmy poniżej limitu)
+        // usuwanie starych markerow
         val currentApiVehicleIds = busesInView.map { "${it.Lines}_${it.VehicleNumber}".trim() }.toSet()
         val iter = visibleMarkers.iterator()
         while (iter.hasNext()) {
@@ -184,13 +184,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        // 4. Aktualizacja i dodawanie
+        // aktualizacja pozycji
         for (bus in busesInView) {
             val combinedId = "${bus.Lines}_${bus.VehicleNumber}".trim()
             val position = LatLng(bus.Lat.toDouble(), bus.Lon.toDouble())
             val existingMarker = visibleMarkers[combinedId]
 
-            // Obliczanie kierunku (bearing) - używamy Twojej poprzedniej logiki
+            // Obliczanie kierunku poruszania sie
             var bearing = existingMarker?.tag as? Float ?: 0f
             if (existingMarker != null) {
                 val oldPos = existingMarker.position
@@ -227,17 +227,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         return Math.toDegrees(radians).toFloat()
     }
 
-    // Funkcja pomocnicza do sprawdzania, czy czas jest "świeży"
+    // sprawdzanie aktywności autobusu
     private fun isTimeFresh(busTime: String): Boolean {
         return try {
             val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             val busDate = sdf.parse(busTime)
             val now = Date()
 
-            // Obliczamy różnicę w milisekundach
             val diff = now.time - (busDate?.time ?: 0)
 
-            // 120 000 ms = 2 minuty. Jeśli różnica jest mniejsza, autobus "żyje"
             diff < 60000
         } catch (e: Exception) {
             false
