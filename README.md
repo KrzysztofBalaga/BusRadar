@@ -1,19 +1,17 @@
-Wersja 0.0.1
-	- Stworzony został pierwotny zarys interfejsu użytkownika.
-Wersja 0.0.2
-	- Wypełnienie interfejsu wartościami, oraz stworzenie animacji najeżdżania na przyciski kursorem.
-	- Pomniejsze zmiany w kodzie.
-Wersja 0.1.0
-	- Stworzenie połączonego linkami drzewa 7 podstron.
-Wersja 0.1.1
-	- Wystylizowanie podstron.
-	- Pomniejsze zmiany w kodzie.
-Wersja 0.2.0
-	- Stworzenie pierwszego skryptu.
-Wersja 0.2.1
-	- Stworzenie pierwszego formularza.
-	- Wstępne wystylizowanie formularza.
-	- Rozbudowanie skryptu.
-	- Pomniejsze zmiany w kodzie.
-	- Napisanie kursu na stronie.
+# BusRadar v0.1.0
 
+Prosty radar autobusowy.
+
+Aplikacja korzysta z dwóch oddzielnych API. Google Cloud skąd pobierana jest mapa, oraz api.um.warszawa skąd pobierane są wszelkie informacje o autobusach w czasie rzeczywistym. 
+
+Na mapie wyświetlane są wszystkie "aktywne" autobusy, a po aktualizacji lokalizacji, obliczany jest jego kierunek jazdy i wyświetlany na strzałce obok numeru lini. Dla czytelniejszego ekranu aplikacja stara się unikać wyświetlania autobusów na zajezdniach (autobusów nieruchomych od dłuższego czasu), a dla optymalizacji równierz autobusów poza zasięgiem widoku mapy, lub gdy jest ich na ekranie powyżej 150, o czym jest informowany użytkownik.
+
+Przyszły rozwój:
+
+-Możliwość wejścia w detale autobusu (czas od ostatniej aktualizacji, cel np.zajezdnia, numer autobusu i potencjalnie wyświetlenie trasy autobusu)
+
+-Dodanie listy ulubionych liń autobusowych, wraz z możliwością wyświetlania tylko 1 lub kilku liń z tej listy
+
+-Dodanie przystanków autobusowych. Po kliknięciu w przystanek będą wyświetlać się tylko autobusy liń zatrzymującyhc się na zaznaczonym przystanku
+
+-Dodanie listy przystanków. Szybszy dostęp do wybranych wcześniej przystanków
