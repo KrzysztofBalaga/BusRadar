@@ -31,10 +31,16 @@ import com.google.android.gms.maps.model.Marker
 import java.io.Console
 import java.text.SimpleDateFormat
 import java.util.*
+import android.content.Intent
+
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
+
+    private lateinit var favManager: FavouriteManager
+
+    private lateinit var favAdapter: FavLinesAdapter
 
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private lateinit var refreshRunnable: Runnable
@@ -54,6 +60,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Inicjalizacja managera
+        favManager = FavouriteManager(this)
+
+        findViewById<View>(R.id.btnAddLines).setOnClickListener {
+            val intent = Intent(this, AllLinesActivity::class.java)
+
+            // Pobieramy listę wszystkich UNIKALNYCH linii z naszych danych
+            val allAvailable = favManager.getAllAvailableLines(lastBusList)
+
+            // Przekazujemy listę do nowego ekranu
+            intent.putStringArrayListExtra("ALL_LINES", ArrayList(allAvailable))
+            startActivity(intent)
+        }
+
+        // Konfiguracja paska na dole (RecyclerView)
+        setupFavRecyclerView()
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.um.warszawa.pl/")
@@ -78,7 +101,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
+        setupFavRecyclerView()
         handler.post(refreshRunnable)
+        favManager.refreshFavourites()
+
+        // 2. Pobierz nową listę ulubionych i daj ją adapterowi
+        if (::favAdapter.isInitialized) {
+            favAdapter.updateData(favManager.getFavourites())
+        }
+
+        // 3. Opcjonalnie: odśwież mapę, żeby pokazała nowo dodane linie
+        redrawVisibleBuses()
     }
 
     override fun onPause() {
@@ -99,7 +132,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-
     private fun downloadBusPositions() {
         ztmService.getBuses(apiKey = "bcab0f4f-96c6-47bf-9ba4-5714732db582").enqueue(object : Callback<BusResponse> {
 
@@ -115,7 +147,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         })
     }
-
+//adsadad
     private fun createCustomMarker(line: String, bearing: Float): BitmapDescriptor {
         val markerView = LayoutInflater.from(this).inflate(R.layout.bus_marker, null)
         val textView = markerView.findViewById<TextView>(R.id.busLineText)
@@ -159,7 +191,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             val isVisible = bounds.contains(pos)
             val isFresh = isTimeFresh(bus.Time)
 
-            isVisible && isFresh
+            // Logika filtra:
+            // Jeśli nic nie wybraliśmy (isEmpty) -> POKAZUJ WSZYSTKO (true)
+            // Jeśli coś wybraliśmy -> POKAZUJ TYLKO TO (contains)
+            val matchesFilter = if (favManager.selectedLines.isEmpty()) {
+                true
+            } else {
+                favManager.selectedLines.contains(bus.Lines.trim())
+            }
+
+            isVisible && isFresh && matchesFilter
         }
 
         if (busesInView.size > 150) {
@@ -240,5 +281,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         } catch (e: Exception) {
             false
         }
+    }
+
+    private fun setupFavRecyclerView() {
+        val recyclerView = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.favLinesRecyclerView)
+
+        // Dodaliśmy favManager jako drugi parametr
+        favAdapter = FavLinesAdapter(favManager.getFavourites(), favManager) { clickedLine ->
+            favManager.toggleSelection(clickedLine)
+
+            // Czyścimy mapę przy zmianie filtra
+            visibleMarkers.forEach { it.value.remove() }
+            visibleMarkers.clear()
+
+            redrawVisibleBuses()
+            // notifyDataSetChanged() jest już wewnątrz adaptera w setOnClickListener,
+            // więc kolory odświeżą się same.
+        }
+
+        recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
+        recyclerView.adapter = favAdapter
     }
 }

@@ -26,6 +26,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".AllLinesActivity"
+            android:label="Dodaj ulubione linie" />
     </application>
 
 </manifest>
