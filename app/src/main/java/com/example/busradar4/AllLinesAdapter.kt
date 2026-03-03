@@ -57,7 +57,7 @@ class AllLinesAdapter(
 
     private fun updateButtonStyle(button: Button, isFav: Boolean) {
         if (isFav) {
-            button.setBackgroundColor(Color.parseColor("#FFD700")) // Złoty
+            button.setBackgroundColor(Color.parseColor("#0493BF")) // Złoty
             button.setTextColor(Color.BLACK)
         } else {
             button.setBackgroundColor(Color.LTGRAY)
