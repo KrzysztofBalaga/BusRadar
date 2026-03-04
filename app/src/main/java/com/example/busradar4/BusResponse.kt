@@ -5,5 +5,5 @@ data class Bus(
     val Lat: String,
     val Lon: String,
     val VehicleNumber: String,
-    val Time: String,
+    val Time: String
 )

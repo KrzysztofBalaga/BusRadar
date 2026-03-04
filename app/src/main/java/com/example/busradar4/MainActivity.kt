@@ -61,21 +61,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Inicjalizacja managera
         favManager = FavouriteManager(this)
 
         findViewById<View>(R.id.btnAddLines).setOnClickListener {
             val intent = Intent(this, AllLinesActivity::class.java)
 
-            // Pobieramy listę wszystkich UNIKALNYCH linii z naszych danych
             val allAvailable = favManager.getAllAvailableLines(lastBusList)
 
-            // Przekazujemy listę do nowego ekranu
             intent.putStringArrayListExtra("ALL_LINES", ArrayList(allAvailable))
             startActivity(intent)
         }
 
-        // Konfiguracja paska na dole (RecyclerView)
+        //pasek na dole
         setupFavRecyclerView()
 
         val retrofit = Retrofit.Builder()
@@ -105,12 +102,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         handler.post(refreshRunnable)
         favManager.refreshFavourites()
 
-        // 2. Pobierz nową listę ulubionych i daj ją adapterowi
+        //pobiera i daje nowa liste
         if (::favAdapter.isInitialized) {
             favAdapter.updateData(favManager.getFavourites())
         }
 
-        // 3. Opcjonalnie: odśwież mapę, żeby pokazała nowo dodane linie
         redrawVisibleBuses()
     }
 
@@ -147,6 +143,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         })
     }
+
 //adsadad
     private fun createCustomMarker(line: String, bearing: Float): BitmapDescriptor {
         val markerView = LayoutInflater.from(this).inflate(R.layout.bus_marker, null)
@@ -191,9 +188,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             val isVisible = bounds.contains(pos)
             val isFresh = isTimeFresh(bus.Time)
 
-            // Logika filtra:
-            // Jeśli nic nie wybraliśmy (isEmpty) -> POKAZUJ WSZYSTKO (true)
-            // Jeśli coś wybraliśmy -> POKAZUJ TYLKO TO (contains)
             val matchesFilter = if (favManager.selectedLines.isEmpty()) {
                 true
             } else {
@@ -286,17 +280,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun setupFavRecyclerView() {
         val recyclerView = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.favLinesRecyclerView)
 
-        // Dodaliśmy favManager jako drugi parametr
         favAdapter = FavLinesAdapter(favManager.getFavourites(), favManager) { clickedLine ->
             favManager.toggleSelection(clickedLine)
 
-            // Czyścimy mapę przy zmianie filtra
             visibleMarkers.forEach { it.value.remove() }
             visibleMarkers.clear()
-
             redrawVisibleBuses()
-            // notifyDataSetChanged() jest już wewnątrz adaptera w setOnClickListener,
-            // więc kolory odświeżą się same.
         }
 
         recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)

@@ -24,22 +24,21 @@ class AllLinesActivity : AppCompatActivity() {
 
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbarAllLines)
         setSupportActionBar(toolbar)
-        // Aktywujemy przycisk powrotu
+        // strzałeczka do tyłu
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        toolbar.setNavigationOnClickListener { finish() } // Zamyka to okno i wraca do mapy
+        toolbar.setNavigationOnClickListener { finish() }
 
         favManager = FavouriteManager(this)
         val allLines = intent.getStringArrayListExtra("ALL_LINES") ?: arrayListOf()
 
         val recyclerView = findViewById<RecyclerView>(R.id.allLinesRV)
 
-// Przekazujemy 3 parametry: listę, managera i blok kodu {}
         adapter = AllLinesAdapter(allLines, favManager){}
 
         recyclerView.layoutManager = GridLayoutManager(this, 5)
         recyclerView.adapter = adapter
 
-        // Wyszukiwarka bez zmian
+        // Wyszukiwarka
         findViewById<EditText>(R.id.searchLineET).addTextChangedListener { text ->
             val filtered = allLines.filter { it.contains(text.toString()) }
             adapter.updateList(filtered)

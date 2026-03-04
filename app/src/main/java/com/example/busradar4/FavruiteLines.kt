@@ -7,10 +7,10 @@ import android.content.SharedPreferences
 class FavouriteManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("bus_prefs", Context.MODE_PRIVATE)
 
-    // Lista wszystkich ulubionych linii (zapisana w pamięci telefonu)
+    // Lista ulubionych
     private var favourites = prefs.getStringSet("fav_lines", setOf())?.toMutableSet() ?: mutableSetOf()
 
-    // Linie aktualnie wybrane przez użytkownika na pasku (do filtrowania mapy)
+    // Linie wybrane
     var selectedLines = mutableSetOf<String>()
 
     fun getFavourites(): List<String> = favourites.toList().sorted()
@@ -33,22 +33,18 @@ class FavouriteManager(context: Context) {
         }
     }
 
-    // Dodaj to do klasy FavouriteManager w pliku FavouriteLines.kt
-
-    // Pobiera unikalne, posortowane numery linii z aktualnych danych API
+    //pobranie posortowanych numerow
     fun getAllAvailableLines(fullBusList: List<Bus>): List<String> {
         return fullBusList.map { it.Lines.trim() }
             .distinct()
             .filter { it.isNotBlank() }
-            .sortedWith(compareBy({ it.length }, { it })) // Sortuje: 1, 2, 10, 100, N01...
+            .sortedWith(compareBy({ it.length }, { it }))
     }
 
-    // Sprawdza, czy dana linia jest już w ulubionych (do rysowania gwiazdki)
     fun isFavourite(line: String): Boolean {
         return favourites.contains(line)
     }
 
-    // W FavouriteLines.kt wewnątrz klasy FavouriteManager
     fun refreshFavourites() {
         favourites = prefs.getStringSet("fav_lines", setOf())?.toMutableSet() ?: mutableSetOf()
     }
