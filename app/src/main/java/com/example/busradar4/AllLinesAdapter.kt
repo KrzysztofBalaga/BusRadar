@@ -19,7 +19,7 @@ import android.util.TypedValue
 class AllLinesAdapter(
     private var lines: List<String>,
     private val favManager: FavouriteManager,
-    private val onUpdate: () -> Unit // To jest ten brakujący parametr 'onUpdate'
+    private val onUpdate: () -> Unit
 ) : RecyclerView.Adapter<AllLinesAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
